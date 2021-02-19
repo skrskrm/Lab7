@@ -50,11 +50,7 @@
 
       <div>
         <label for="title">Title: </label>
-        <input
-          type="text"
-          name="title"
-          id="title"
-        />
+        <input type="text" name="title" id="title" />
       </div>
 
       <div id="recordIDcontainer">
@@ -83,32 +79,106 @@
       // From the 4 CRUD actions, this is the READ action, and uses the GET http method.
       // The main difference from fetchOne() will be the URL you request from; check
       // the writeup to view the URL pattern for fetch one and fetch all
-      function fetchAll() {
+      async function fetchAll() {
         // TODO
+        document.getElementById('recordForm').style.display = 'none';
+        document.getElementById('output').value = "";
+        document.getElementById('author').value = '';
+        document.getElementById('title').value = '';
+        let endp = document.getElementById('endpoint');
+        let response = await fetch(endp.value);
+        if (!response.ok) {
+          document.getElementById('output').innerText = 'Network Error: 404';
+          throw new Error(`HTTP error! status: ${response.status}`);
+        } 
+        else {
+          document.getElementById('output').innerText = JSON.stringify(await response.json());
+        }
       }
 
       // This function should fetch one entry from the given endpoint.
       // From the 4 CRUD actions, this is the READ action, and uses the GET http method.
       // The main difference from fetchAll() will be the URL you request from; check
       // the writeup to view the URL pattern for fetch one and fetch all
-      function fetchOne() {
+      async function fetchOne() {
         // TODO
+        document.getElementById('recordForm').style.display = 'none';
+        document.getElementById('output').innerText = "";
+        document.getElementById('author').value = '';
+        document.getElementById('title').value = '';
+        let endp = document.getElementById('endpoint');
+        let sign = prompt("Enter Record ID:");
+        let response = await fetch(endp.value + '/' + sign);
+          if (!response.ok) {
+            document.getElementById('output').innerText = 'Network Error: 404';
+            throw new Error(`HTTP error! status: ${response.status}`);
+          } 
+          else {
+            document.getElementById('output').innerText = JSON.stringify(await response.json());
+        }
       }
 
       // This function should use fetch to create one entry in the given endpoint.
       // From the 4 CRUD actions, this is the CREATE action, and uses the POST http method.
       // The main difference from updateRecord() will be the URL you send data to; check
       // the writeup to view the URL pattern for create and update
-      function createRecord() {
+      async function createRecord(option) {
         // TODO
+        if(option == 'show') {
+          document.getElementById('recordForm').style.display = 'block';
+          document.getElementById('output').value = '';
+        }
+        else {
+          let endp = document.getElementById('endpoint').value;
+          let t = document.getElementById('title').value;
+          let a = document.getElementById('author').value;
+          let data = {"title": t, "author": a};
+          await fetch(endp, {
+            method: "POST", 
+            headers: {"Content-type": "application/json"},
+            body: JSON.stringify(data)
+          }).then(res => {
+            console.log("Request complete! response:", res);
+          });
+          let response = await fetch(endp);
+          let IDdata = await response.json();
+          document.getElementById('output').innerText = JSON.stringify(IDdata[IDdata.length-1]);
+        }
       }
 
       // This function should use fetch to update one existing entry in the given endpoint.
       // From the 4 CRUD actions, this is the UPDATE action, and uses the PUT http method.
       // The main difference from createRecord() will be the URL you send data to; check
       // the writeup to view the URL pattern for create and update
-      function updateRecord() {
+      async function updateRecord(option) {
         // TODO
+        if(option == 'show') {
+          document.getElementById('recordForm').style.display = 'block';
+          document.getElementById('recordIDcontainer').style.display = 'block';
+          document.getElementById('output').value = '';
+        }
+        else {
+          let endp = document.getElementById('endpoint').value;
+          let t = document.getElementById('title').value;
+          let a = document.getElementById('author').value;
+          let r = document.getElementById('recordID').value;
+          let data = {"title": t, "author": a};
+          await fetch(endp+'/'+r, {
+            method: "PUT", 
+            headers: {"Content-type": "application/json"},
+            body: JSON.stringify(data)
+          }).then(res => {
+            console.log("Request complete! response:", res);
+          });
+          let response = await fetch(endp + '/' + r);
+            if (!response.ok) {
+              document.getElementById('output').innerText = 'Network Error: 404';
+              throw new Error(`HTTP error! status: ${response.status}`);
+            } 
+            else {
+              document.getElementById('output').innerText = JSON.stringify(await response.json());
+          }
+        }
       }
 
       // This function should use fetch to delete one existing entry in the given endpoint.
@@ -118,6 +188,21 @@
       // delete all, only delete one.
       function deleteRecord() {
         // TODO
+        document.getElementById('recordForm').style.display = 'none';
+        let endp = document.getElementById('endpoint').value;
+        let sign = prompt("Enter Record ID:");
+        fetch(endp+'/'+sign, {
+            method: "DELETE", 
+            headers: {"Content-type": "application/json"},
+          }).then(res => {
+            if(!res.ok) {
+              document.getElementById('output').innerText = "Network Error: 404"
+            }
+            else {
+              console.log("Request complete! response:", res);
+              document.getElementById('output').innerText = "{}";
+            }
+          });
       }
 
       window.addEventListener('DOMContentLoaded', () => {
@@ -127,7 +212,6 @@
           .addEventListener("submit", event => {
             event.preventDefault();
             let command = document.getElementById('action').value;
-
             switch (command) {
               case "List All":
                 fetchAll();
@@ -155,7 +239,6 @@
           .addEventListener("submit", event => {
             event.preventDefault();
             let command = document.getElementById('action').value;
-            
             switch (command) {
               case "Create":
                 createRecord('submit');
