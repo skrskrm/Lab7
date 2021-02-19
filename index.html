@@ -168,7 +168,13 @@
             headers: {"Content-type": "application/json"},
             body: JSON.stringify(data)
           }).then(res => {
-            console.log("Request complete! response:", res);
+            if(!res.ok) {
+              document.getElementById('output').innerText = 'Network Error: 404';
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            else {
+              console.log("Request complete! response:", res);
+            }
           });
           let response = await fetch(endp + '/' + r);
             if (!response.ok) {
